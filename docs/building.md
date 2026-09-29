@@ -58,6 +58,11 @@ You get, in `dist/`:
 Extracted assets are cached in `work/`. Delete that folder after a game patch,
 otherwise you will rebuild against stale art.
 
+The build refuses to run against an install that has a mod in its Paks folder,
+including this one. Reading your own output back in as though it were the
+game's art is an easy mistake to make and an invisible one to spot afterwards,
+so move the `_P` files out and clear `work/` before building.
+
 ## Releasing
 
 1. Bump `version` in `nexus/variants.json`

@@ -57,6 +57,15 @@ def game_paks():
     paks = os.path.join(root, "Dungeons", "Content", "Paks")
     if not os.path.isdir(paks):
         die("no Paks folder at %s\n       set MCD2_GAME_DIR to your install" % paks)
+
+    # Building against a modded install reads our own output back in as if it
+    # were the game's art, and the mistake is invisible in the result.
+    mods = sorted(os.path.basename(p) for p in glob.glob(os.path.join(paks, "*_P.*")))
+    if mods:
+        die("this install has a mod in it:\n       %s\n"
+            "       move those out of the Paks folder and delete work/ first,"
+            " otherwise the build reads its own output back in"
+            % "\n       ".join(mods))
     return paks
 
 
