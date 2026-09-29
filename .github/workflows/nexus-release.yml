@@ -1,0 +1,97 @@
+name: Publish to Nexus
+
+# Pushes the archives attached to a GitHub release up to the mod page.
+#
+# The build itself cannot run here. The mod is made out of the game's own
+# artwork, which is not in this repository and is not ours to put in a CI
+# runner, so packages are built locally with build.py, attached to a GitHub
+# release, and this workflow forwards them.
+#
+# Before the first automated run:
+#   1. create the mod page and upload each archive by hand once
+#   2. put the resulting ids in nexus/variants.json
+#   3. add your Nexus API key as the NEXUSMODS_API_KEY repository secret
+#
+# The upload API adds a version to an existing file, so it cannot create the
+# files for you.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (defaults to the latest)
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.read.outputs.matrix }}
+      ready: ${{ steps.read.outputs.ready }}
+      version: ${{ steps.read.outputs.version }}
+      mod_id: ${{ steps.read.outputs.mod_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: read
+        name: Read variant metadata
+        run: |
+          set -euo pipefail
+          file=nexus/variants.json
+          version=$(jq -r '.version' "$file")
+          mod_id=$(jq -r '.mod_id // ""' "$file")
+          ready=$(jq '[.variants[] | select(.file_id != null)] | length' "$file")
+          total=$(jq '.variants | length' "$file")
+          matrix=$(jq -c '{include: [.variants[] | select(.file_id != null)]}' "$file")
+
+          {
+            echo "version=$version"
+            echo "mod_id=$mod_id"
+            echo "ready=$ready"
+            echo "matrix=$matrix"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "$ready of $total variants have a file_id and will be uploaded."
+          if [ "$ready" -lt "$total" ]; then
+            echo "::warning::Variants without a file_id are skipped. Upload each one by hand once, then add its id to nexus/variants.json."
+            jq -r '.variants[] | select(.file_id == null) | "  skipping \(.key): no file_id yet"' "$file"
+          fi
+
+  upload:
+    needs: plan
+    if: needs.plan.outputs.ready != '0'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch archive from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+             --pattern "${{ matrix.archive }}" --clobber
+          ls -l "${{ matrix.archive }}"
+
+      - name: Upload to Nexus
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.10
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          mod_id: ${{ needs.plan.outputs.mod_id }}
+          file_id: ${{ matrix.file_id }}
+          filename: ${{ matrix.archive }}
+          version: ${{ needs.plan.outputs.version }}
+          display_name: ${{ matrix.display_name }} ${{ needs.plan.outputs.version }}
+          category: ${{ matrix.category }}
+          archive_existing_version: true
+          update_mod_version: true

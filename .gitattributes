@@ -1,9 +1,13 @@
 * text=auto
 
-# Windows-side files keep CRLF so Notepad and the game's ini parser behave
-*.ini   text eol=crlf
-*.ps1   text eol=crlf
-*.txt   text eol=crlf
+# CI runs on Linux and shell blocks break on carriage returns
+*.yml   text eol=lf
+*.yaml  text eol=lf
 
+*.json  text eol=lf
 *.md    text eol=lf
 *.py    text eol=lf
+
+# anything destined for Windows Notepad
+*.txt       text eol=crlf
+*.template  text eol=crlf

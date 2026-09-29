@@ -1,143 +1,116 @@
 # Minecraft Dungeons II: Native Controller Prompts
 
-Dungeons II came out, I sat down with a DualSense, and the game spent the
-whole evening telling me to press A. My controller does not have an A.
-Every PC player gets Xbox prompts no matter what is plugged in.
+I sat down with Dungeons II and a DualSense, and the game spent the whole
+evening telling me to press A. My controller does not have an A. Every PC
+player gets Xbox prompts no matter what is plugged in. This does not pass the
+significant other / kid check.
 
-I went in expecting to repaint a pile of button icons, because that is how
-the old Minecraft Dungeons mods did it. I still have a DualShock 4 icon pak
-sitting in that game's mods folder from years ago. None of that is needed
-this time. The PlayStation icons are already sitting in your Windows
-install, fully drawn and ready to go. The game just never picks them.
+I went in expecting to repaint a pile of button icons, because that is how the
+old Minecraft Dungeons mods did it. Turns out nobody needs to draw anything.
+The PlayStation icons are already sitting in your Windows install, fully drawn
+and ready to go. The game just never picks them.
 
-So this is a two line config file.
-
-## What it changes
-
-Dungeons II uses Unreal's CommonUI for input. Its Windows settings register
-every controller profile the game owns, PS4, PS5, Switch, Xbox One and Xbox
-Series, and then set the default gamepad to `Generic`. Here is the part that
-made me laugh: the Xbox One profile is the one that claims the name
-`Generic`. So the default quietly resolves to Xbox for everyone on PC, and
-the PlayStation art it shipped with never gets a look in.
-
-The fix is to name a different one.
-
-```ini
-[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]
-DefaultGamepadName=PS5
-```
-
-That is the whole mod. No game files are modified, nothing is repacked, and
-no artwork is redistributed. You are pointing the game at icons it already
-gave you.
+So this mod does not add art. It takes the icons the game already ships and
+puts them where the game is already looking.
 
 ## Install
 
-Right-click Start, open Terminal, paste this, press Enter:
-
-```powershell
-$v='PS5';$r=@("$env:LOCALAPPDATA\Dungeons2");foreach($k in @(Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory -Filter '*MinecraftDungeons2*' -EA 0)){$r+="$($k.FullName)\LocalCache\Local\Dungeons2"};$h='[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]';foreach($b in $r){$d="$b\Saved\Config\Windows";$f="$d\Game.ini";New-Item -ItemType Directory -Force $d|Out-Null;if(Test-Path $f){sp $f IsReadOnly $false};$l=@();if(Test-Path $f){$l=@(Get-Content $f|Where-Object{$_ -notmatch '^\s*DefaultGamepadName\s*='})};if($l -notcontains $h){if($l.Count -and $l[-1].Trim()){$l+=''};$l+=$h};$i=[array]::IndexOf($l,$h);$o=@();for($j=0;$j -lt $l.Count;$j++){$o+=$l[$j];if($j -eq $i){$o+="DefaultGamepadName=$v"}};Set-Content $f $o -Encoding UTF8;sp $f IsReadOnly $true;"Applied: $f"}
-```
-
-Restart the game. Done.
-
-That works for Steam, Microsoft Store and Game Pass, and it does not care
-where you installed the game, because the config lives in your user folder
-instead of the game folder.
-
-Prefer to do it by hand? Copy `variants/PS5/Game.ini` into this folder:
+Grab a zip from [releases](../../releases) and put all three files into your
+game's Paks folder:
 
 ```
-%LOCALAPPDATA%\Dungeons2\Saved\Config\Windows
+Dungeons-Windows_P.utoc
+Dungeons-Windows_P.ucas
+Dungeons-Windows_P.pak
 ```
 
-Microsoft Store and Game Pass keep theirs somewhere less friendly:
+On Steam:
 
 ```
-%LOCALAPPDATA%\Packages\Microsoft.MinecraftDungeons2_8wekyb3d8bbwe\LocalCache\Local\Dungeons2\Saved\Config\Windows
+...\steamapps\common\Minecraft Dungeons II\Dungeons\Content\Paks
 ```
 
-Paste either one into the Explorer address bar and it will take you there.
-If a `Game.ini` is already sitting in that folder, add the two lines to the
-end of it rather than replacing the file.
+On Microsoft Store and Game Pass, open the game's install location and look
+for the same `Dungeons\Content\Paks` folder inside it.
 
-Then right-click the file you just put there, open Properties, and tick
-Read-only. Do not skip that part. The next section explains why.
+Keep all three together and do not rename them. They are one container split
+across three files, and the game ignores an incomplete set.
 
-## Why the file has to be read-only
-
-Dungeons II keeps its user config in Unreal's newer diff based format, and
-it rewrites those files when it shuts down. It only writes back the values
-it believes it owns, and our section is not one of them, so on a clean exit
-it deletes the whole file and you are looking at Xbox prompts again next
-time you play.
-
-This one caught me out. My first round of testing looked perfect, because I
-had been killing the game from the task list rather than quitting it from
-the menu, and killing it skips the config save entirely. The first time I
-quit properly, the file was gone.
-
-Marking it read-only stops the rewrite. The game still reads the value on
-startup, finds it cannot write the file back afterwards, and carries on.
-Nothing of yours lives in that file anyway. Your graphics and audio settings
-are in `GameUserSettings.ini` next to it, which stays writable, so locking
-this one costs you nothing.
+Start the game. That is it.
 
 ## Uninstall
 
-Run `uninstall.ps1`, or delete that `Game.ini` yourself. Windows will ask
-you to confirm because the file is read-only, which is expected, say yes.
-That really is all of it. You do not need to verify your files or reinstall
-anything, because nothing outside your own config folder was ever touched.
+Delete those three files. Nothing else was touched, so there is nothing else
+to undo. Verifying your game files through Steam also removes them, which is
+worth knowing if the mod ever seems to vanish on its own.
 
-## Other controllers
+## Versions
 
-Swap the value, or grab the matching folder under `variants/`.
-
-| Controller | Value |
+| | Tested |
 | --- | --- |
-| DualSense | `PS5` |
-| DualShock 4 | `PS4` |
-| Switch Pro and Joy-Con | `Switch` |
-| Xbox Series X and S | `XSX` |
-| Back to stock | `Generic` |
+| PlayStation | yes, on a DualSense, mine |
+| Nintendo Switch | not on hardware |
 
-Only PS5 has been tested on real hardware, which was mine. The other three
-use the exact same mechanism and I pulled their names straight out of the
-game's own controller assets, so I expect them to be fine, but expecting and
-knowing are different things. If you run one of them, I would love to hear
-whether it worked.
+They use the same three filenames, so they replace each other rather than
+stacking.
 
-The Joy-Con profiles both report themselves as `Switch`, so there is no way
-to select left and right separately from here.
+The Switch one needed real work rather than a copy of the PlayStation
+approach, because that sheet is 588 by 588 in a seven by seven grid against
+Xbox's 504 by 504 six by six. Nothing lines up on its own. Buttons are mapped
+by what they do rather than where they sit, so confirm shows as A and back
+shows as B, which is what your hands expect even though Nintendo puts those
+letters in the opposite corners.
 
-## Getting no prompts at all?
+## Worth knowing
 
-Then your controller is not reaching the game in the first place and this
-mod cannot help, because there is nothing for it to relabel. Check that the
-pad is actually awake. A DualSense that is paired over Bluetooth but asleep
-still shows up in Windows while being completely invisible to the game,
-which cost me a good ten minutes of staring at a title screen wondering why
-nothing had changed. Toggling Steam Input for the game is worth a try too.
+The prompts change for every controller, not just the one you picked. The game
+never learns what you have plugged in, so an Xbox pad will still show
+PlayStation buttons until you remove the files. That is the tradeoff for a fix
+this small, and it is the same one the old Dungeons mods made.
 
-## How I found it
+The controller picture on the System screen still shows an Xbox pad. Separate
+texture, later version.
 
-I pulled the config out of the game's packed data and read it. The answer
-was sitting right there in `DefaultGame.ini` in plain text, which was a
-little anticlimactic after I had talked myself into a long afternoon of
-texture work.
+Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.1.0
+on Unreal Engine 5.6.1.
 
-If you want to confirm it yourself before trusting a config file from a
-stranger on the internet, the values in the table above come from the
-`GamepadName` property on each of the game's `CI_Gamepad_*` assets. Good
-practice anyway.
+## Why the game gets this wrong
 
-## Notes
+Short version: Unreal's CommonUI registers every controller profile the game
+owns, then sets the default gamepad name to `Generic`, and the Xbox profile is
+the one that claims that name. So everyone on PC resolves to Xbox.
 
-Cosmetic only, so it is safe in multiplayer. It lives in your user config
-rather than the game's data, which means a game patch should not wipe it.
-Built and tested against Dungeons II 1.1.1.0 on Unreal Engine 5.6.1.
+You cannot fix it by asking for a different name. I tried every way there is
+and none of them move it. What you can do is change what that profile draws.
 
-If it breaks, or if you get it working on a controller I have not tried,
-open an issue and tell me about it. I would rather hear it than not.
+The long version, including the several approaches that look right and are
+not, is in [docs/how-it-works.md](docs/how-it-works.md). Read that one before
+the next game patch breaks something.
+
+## Building
+
+The mod is made out of the game's own artwork, so the build reads it out of
+your installation and none of it lives here. See
+[docs/building.md](docs/building.md).
+
+```
+python build.py
+```
+
+## Publishing
+
+`nexus/` holds the mod page description, the readme that ships inside each
+zip, and `variants.json` with the Nexus file ids.
+
+Releases go up through [the official Nexus upload
+action](https://github.com/Nexus-Mods/upload-action). The build cannot run in
+CI, because the game's assets are not here and have no business being in a CI
+runner, so the flow is: build locally, attach the zips to a GitHub release,
+and the workflow forwards them to the mod page.
+
+The upload API adds a version to a file that already exists, so each variant
+has to be uploaded by hand once before any of it is automatic. Fill in
+`mod_id` and the `file_id` values in `nexus/variants.json` afterwards, add
+`NEXUSMODS_API_KEY` as a repository secret, and it runs itself from then on.
+Variants without a `file_id` are skipped with a warning rather than failing
+the run.

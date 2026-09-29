@@ -1,74 +1,54 @@
-Minecraft Dungeons II: Native Controller Prompts
-{{LABEL}}
+Minecraft Dungeons II - {{LABEL}} Button Prompts
+v{{VERSION}}
 
-Dungeons II shows Xbox button prompts to everyone on PC. This makes it show
-{{LABEL}} ones instead.
-
-It does not replace any artwork. The game already ships these icons in the
-Windows build, it just never picks them. This is a two line config file that
-tells it to.
+Dungeons II shows Xbox button prompts to every PC player. This makes it show
+{{LABEL}} ones instead, using the icons the game already ships with.
 
 
-INSTALL, pick either one
+INSTALL
 
-  A) Right-click Start, open Terminal, paste this, press Enter:
+Put all three of these files into your game's Paks folder:
 
-{{ONELINER}}
+    Dungeons-Windows_P.utoc
+    Dungeons-Windows_P.ucas
+    Dungeons-Windows_P.pak
 
-  B) Or copy Game.ini into this folder yourself:
+On Steam that folder is here:
 
-       %LOCALAPPDATA%\Dungeons2\Saved\Config\Windows
+    ...\steamapps\common\Minecraft Dungeons II\Dungeons\Content\Paks
 
-     Microsoft Store and Game Pass use this one instead:
+On Microsoft Store and Game Pass, open the game's install location and look
+for the same Dungeons\Content\Paks folder inside it.
 
-       %LOCALAPPDATA%\Packages\Microsoft.MinecraftDungeons2_8wekyb3d8bbwe\LocalCache\Local\Dungeons2\Saved\Config\Windows
+Keep all three together and do not rename them. They are one container split
+across three files, and the game ignores an incomplete set.
 
-     Paste the path into the Explorer address bar and it will take you
-     there. If a Game.ini is already sitting in that folder, add these two
-     lines to the end of it rather than replacing the file:
-
-       [CommonInputPlatformSettings_Windows CommonInputPlatformSettings]
-       DefaultGamepadName={{GAMEPAD}}
-
-     Then right-click that file, open Properties, and tick Read-only. Do
-     not skip it, see below.
-
-Either way, restart the game afterwards.
-
-
-WHY READ-ONLY?
-
-The game rewrites its own user config when it shuts down, keeping only the
-values it believes it owns. Ours is not one of them, so on a clean exit it
-deletes the file and you are back to Xbox prompts next time you play.
-
-Marking it read-only stops that. The game still reads the setting on
-startup, then finds it cannot write the file back and carries on. Nothing
-of yours lives in that file. Your graphics and audio settings are in
-GameUserSettings.ini next to it and stay writable.
-
-The one line installer above does this for you.
+Start the game. That is it.
 
 
 UNINSTALL
 
-Delete that Game.ini. Windows asks you to confirm because the file is
-read-only, which is expected. That is all of it. Nothing else was touched.
+Delete those three files. Nothing else was touched. Verifying your game files
+through Steam also removes them, which is worth knowing if the mod ever seems
+to vanish on its own.
 
 
-NO PROMPTS AT ALL?
+ONE AT A TIME
 
-Then your controller is not reaching the game and this mod has nothing to
-relabel. Check that the pad is actually awake, since one that is paired over
-Bluetooth but asleep still shows up in Windows while being invisible to the
-game. Toggling Steam Input for the game is worth a try too.
+Every version of this mod uses the same three filenames, so they replace each
+other. Swapping between them is fine. Running two at once is not possible.
 
 
-NOTES
+WORTH KNOWING
 
-Cosmetic only, so it is safe in multiplayer. It lives in your user config
-rather than the game's data, so a patch should not wipe it. Built against
-Dungeons II 1.1.1.0 on Unreal Engine 5.6.1.
+The prompts change for every controller, not just {{LABEL}} ones. The game
+never learns what you have plugged in, so an Xbox pad will still show these
+prompts until you remove the files.
 
-Other versions of this are up for DualSense, DualShock 4, Switch and Xbox
-Series controllers.
+The controller picture on the System screen still shows an Xbox pad. That is a
+separate texture and it is coming later.
+
+Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.1.0
+on Unreal Engine 5.6.1. If a game patch changes the icon sheets this will need
+rebuilding, so if prompts go strange after an update, pull the files out.
+{{TESTED}}

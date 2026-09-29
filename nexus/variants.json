@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Metadata for automated Nexus uploads.",
+    "",
+    "The Nexus upload API replaces a version on an EXISTING file, so the first",
+    "upload of each variant has to be done by hand on the mod page. After that,",
+    "fill in mod_id and each file_id below and the release workflow takes over.",
+    "",
+    "Find the ids on the mod page Files tab with 'Advanced' ticked, or in the",
+    "Manage Files screen."
+  ],
+  "version": "1.0",
+  "game_domain": "minecraftdungeons2",
+  "mod_id": null,
+  "variants": [
+    {
+      "key": "PlayStation",
+      "archive": "MCD2-PlayStationPrompts.zip",
+      "display_name": "PlayStation Button Prompts",
+      "category": "main",
+      "file_id": null
+    },
+    {
+      "key": "Switch",
+      "archive": "MCD2-SwitchPrompts.zip",
+      "display_name": "Nintendo Switch Button Prompts",
+      "category": "optional",
+      "file_id": null
+    }
+  ]
+}
