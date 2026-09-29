@@ -1,0 +1,56 @@
+Minecraft Dungeons II: Native Controller Prompts
+{{LABEL}}
+
+Dungeons II shows Xbox button prompts to everyone on PC. This makes it show
+{{LABEL}} ones instead.
+
+It does not replace any artwork. The game already ships these icons in the
+Windows build, it just never picks them. This is a two line config file that
+tells it to.
+
+
+INSTALL, pick either one
+
+  A) Right-click Start, open Terminal, paste this, press Enter:
+
+{{ONELINER}}
+
+  B) Or copy Game.ini into this folder yourself:
+
+       %LOCALAPPDATA%\Dungeons2\Saved\Config\Windows
+
+     Microsoft Store and Game Pass use this one instead:
+
+       %LOCALAPPDATA%\Packages\Microsoft.MinecraftDungeons2_8wekyb3d8bbwe\LocalCache\Local\Dungeons2\Saved\Config\Windows
+
+     Paste the path into the Explorer address bar and it will take you
+     there. If a Game.ini is already sitting in that folder, add these two
+     lines to the end of it rather than replacing the file:
+
+       [CommonInputPlatformSettings_Windows CommonInputPlatformSettings]
+       DefaultGamepadName={{GAMEPAD}}
+
+Either way, restart the game afterwards.
+
+
+UNINSTALL
+
+Delete that Game.ini. That is all of it. Nothing else was touched.
+
+
+NO PROMPTS AT ALL?
+
+Then your controller is not reaching the game and this mod has nothing to
+relabel. Check that the pad is actually awake, since one that is paired over
+Bluetooth but asleep still shows up in Windows while being invisible to the
+game. Toggling Steam Input for the game is worth a try too.
+
+
+NOTES
+
+Cosmetic only, so it is safe in multiplayer. It lives in your user config
+rather than the game's data, so a patch should not wipe it. Built against
+Dungeons II 1.1.1.0 on Unreal Engine 5.6.1.
+
+Other versions of this are up for DualSense, DualShock 4, Switch and Xbox
+Series controllers.

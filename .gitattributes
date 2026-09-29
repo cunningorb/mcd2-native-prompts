@@ -1,0 +1,9 @@
+* text=auto
+
+# Windows-side files keep CRLF so Notepad and the game's ini parser behave
+*.ini   text eol=crlf
+*.ps1   text eol=crlf
+*.txt   text eol=crlf
+
+*.md    text eol=lf
+*.py    text eol=lf
