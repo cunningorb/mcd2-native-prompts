@@ -15,6 +15,7 @@ $touched = $false
 foreach ($root in $roots) {
     $file = "$root\Saved\Config\Windows\Game.ini"
     if (-not (Test-Path $file)) { continue }
+    Set-ItemProperty -Path $file -Name IsReadOnly -Value $false
 
     $lines = @(Get-Content $file | Where-Object { $_ -notmatch '^\s*DefaultGamepadName\s*=' })
 

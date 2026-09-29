@@ -30,12 +30,30 @@ INSTALL, pick either one
        [CommonInputPlatformSettings_Windows CommonInputPlatformSettings]
        DefaultGamepadName={{GAMEPAD}}
 
+     Then right-click that file, open Properties, and tick Read-only. Do
+     not skip it, see below.
+
 Either way, restart the game afterwards.
+
+
+WHY READ-ONLY?
+
+The game rewrites its own user config when it shuts down, keeping only the
+values it believes it owns. Ours is not one of them, so on a clean exit it
+deletes the file and you are back to Xbox prompts next time you play.
+
+Marking it read-only stops that. The game still reads the setting on
+startup, then finds it cannot write the file back and carries on. Nothing
+of yours lives in that file. Your graphics and audio settings are in
+GameUserSettings.ini next to it and stay writable.
+
+The one line installer above does this for you.
 
 
 UNINSTALL
 
-Delete that Game.ini. That is all of it. Nothing else was touched.
+Delete that Game.ini. Windows asks you to confirm because the file is
+read-only, which is expected. That is all of it. Nothing else was touched.
 
 
 NO PROMPTS AT ALL?

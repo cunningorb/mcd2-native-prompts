@@ -37,7 +37,7 @@ gave you.
 Right-click Start, open Terminal, paste this, press Enter:
 
 ```powershell
-$v='PS5';$r=@("$env:LOCALAPPDATA\Dungeons2");foreach($k in @(Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory -Filter '*MinecraftDungeons2*' -EA 0)){$r+="$($k.FullName)\LocalCache\Local\Dungeons2"};$h='[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]';foreach($b in $r){$d="$b\Saved\Config\Windows";$f="$d\Game.ini";New-Item -ItemType Directory -Force $d|Out-Null;$l=@();if(Test-Path $f){$l=@(Get-Content $f|Where-Object{$_ -notmatch '^\s*DefaultGamepadName\s*='})};if($l -notcontains $h){if($l.Count -and $l[-1].Trim()){$l+=''};$l+=$h};$i=[array]::IndexOf($l,$h);$o=@();for($j=0;$j -lt $l.Count;$j++){$o+=$l[$j];if($j -eq $i){$o+="DefaultGamepadName=$v"}};Set-Content $f $o -Encoding UTF8;"Applied: $f"}
+$v='PS5';$r=@("$env:LOCALAPPDATA\Dungeons2");foreach($k in @(Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory -Filter '*MinecraftDungeons2*' -EA 0)){$r+="$($k.FullName)\LocalCache\Local\Dungeons2"};$h='[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]';foreach($b in $r){$d="$b\Saved\Config\Windows";$f="$d\Game.ini";New-Item -ItemType Directory -Force $d|Out-Null;if(Test-Path $f){sp $f IsReadOnly $false};$l=@();if(Test-Path $f){$l=@(Get-Content $f|Where-Object{$_ -notmatch '^\s*DefaultGamepadName\s*='})};if($l -notcontains $h){if($l.Count -and $l[-1].Trim()){$l+=''};$l+=$h};$i=[array]::IndexOf($l,$h);$o=@();for($j=0;$j -lt $l.Count;$j++){$o+=$l[$j];if($j -eq $i){$o+="DefaultGamepadName=$v"}};Set-Content $f $o -Encoding UTF8;sp $f IsReadOnly $true;"Applied: $f"}
 ```
 
 Restart the game. Done.
@@ -62,11 +62,34 @@ Paste either one into the Explorer address bar and it will take you there.
 If a `Game.ini` is already sitting in that folder, add the two lines to the
 end of it rather than replacing the file.
 
+Then right-click the file you just put there, open Properties, and tick
+Read-only. Do not skip that part. The next section explains why.
+
+## Why the file has to be read-only
+
+Dungeons II keeps its user config in Unreal's newer diff based format, and
+it rewrites those files when it shuts down. It only writes back the values
+it believes it owns, and our section is not one of them, so on a clean exit
+it deletes the whole file and you are looking at Xbox prompts again next
+time you play.
+
+This one caught me out. My first round of testing looked perfect, because I
+had been killing the game from the task list rather than quitting it from
+the menu, and killing it skips the config save entirely. The first time I
+quit properly, the file was gone.
+
+Marking it read-only stops the rewrite. The game still reads the value on
+startup, finds it cannot write the file back afterwards, and carries on.
+Nothing of yours lives in that file anyway. Your graphics and audio settings
+are in `GameUserSettings.ini` next to it, which stays writable, so locking
+this one costs you nothing.
+
 ## Uninstall
 
-Delete that `Game.ini`. That really is all of it. You do not need to verify
-your files or reinstall anything, because nothing outside your own config
-folder was ever touched.
+Run `uninstall.ps1`, or delete that `Game.ini` yourself. Windows will ask
+you to confirm because the file is read-only, which is expected, say yes.
+That really is all of it. You do not need to verify your files or reinstall
+anything, because nothing outside your own config folder was ever touched.
 
 ## Other controllers
 

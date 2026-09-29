@@ -15,7 +15,7 @@ So this is a two line config file.
 
 Right-click Start, open Terminal, paste this, press Enter:
 
-[code]$v='PS5';$r=@("$env:LOCALAPPDATA\Dungeons2");foreach($k in @(Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory -Filter '*MinecraftDungeons2*' -EA 0)){$r+="$($k.FullName)\LocalCache\Local\Dungeons2"};$h='[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]';foreach($b in $r){$d="$b\Saved\Config\Windows";$f="$d\Game.ini";New-Item -ItemType Directory -Force $d|Out-Null;$l=@();if(Test-Path $f){$l=@(Get-Content $f|Where-Object{$_ -notmatch '^\s*DefaultGamepadName\s*='})};if($l -notcontains $h){if($l.Count -and $l[-1].Trim()){$l+=''};$l+=$h};$i=[array]::IndexOf($l,$h);$o=@();for($j=0;$j -lt $l.Count;$j++){$o+=$l[$j];if($j -eq $i){$o+="DefaultGamepadName=$v"}};Set-Content $f $o -Encoding UTF8;"Applied: $f"}[/code]
+[code]$v='PS5';$r=@("$env:LOCALAPPDATA\Dungeons2");foreach($k in @(Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory -Filter '*MinecraftDungeons2*' -EA 0)){$r+="$($k.FullName)\LocalCache\Local\Dungeons2"};$h='[CommonInputPlatformSettings_Windows CommonInputPlatformSettings]';foreach($b in $r){$d="$b\Saved\Config\Windows";$f="$d\Game.ini";New-Item -ItemType Directory -Force $d|Out-Null;if(Test-Path $f){sp $f IsReadOnly $false};$l=@();if(Test-Path $f){$l=@(Get-Content $f|Where-Object{$_ -notmatch '^\s*DefaultGamepadName\s*='})};if($l -notcontains $h){if($l.Count -and $l[-1].Trim()){$l+=''};$l+=$h};$i=[array]::IndexOf($l,$h);$o=@();for($j=0;$j -lt $l.Count;$j++){$o+=$l[$j];if($j -eq $i){$o+="DefaultGamepadName=$v"}};Set-Content $f $o -Encoding UTF8;sp $f IsReadOnly $true;"Applied: $f"}[/code]
 
 Restart the game. Done.
 
@@ -29,11 +29,19 @@ Microsoft Store and Game Pass keep theirs somewhere less friendly:
 
 [code]%LOCALAPPDATA%\Packages\Microsoft.MinecraftDungeons2_8wekyb3d8bbwe\LocalCache\Local\Dungeons2\Saved\Config\Windows[/code]
 
-Paste either one into the Explorer address bar and it will take you there. If a Game.ini is already in that folder, add the two lines to the end of it rather than replacing the file.
+Paste either one into the Explorer address bar and it will take you there. If a Game.ini is already in that folder, add the two lines to the end of it rather than replacing the file. Then right-click that file, open Properties, and tick [b]Read-only[/b]. Do not skip that bit, the next section explains why.
+
+[size=4][b]Why it has to be read-only[/b][/size]
+
+The game rewrites its own user config when it shuts down, and it only writes back the values it believes it owns. Ours is not one of them, so on a clean exit it deletes the file and you are looking at Xbox prompts again next time you play.
+
+This caught me out while I was testing. Everything looked perfect for hours, because I had been killing the game from the task list rather than quitting from the menu, and killing it skips the config save entirely. The first time I quit properly, the file was gone.
+
+Marking it read-only stops the rewrite. The game still reads the setting on startup, then finds it cannot write the file back and carries on. Nothing of yours lives in that file. Your graphics and audio settings are in GameUserSettings.ini next to it and stay writable, so locking this one costs you nothing. The one line installer above handles it for you.
 
 [size=4][b]Uninstall[/b][/size]
 
-Delete that Game.ini. That really is all of it. You do not need to verify your files or reinstall anything, because nothing outside your own config folder was ever touched.
+Delete that Game.ini. Windows will ask you to confirm because it is read-only, which is expected, say yes. That really is all of it. You do not need to verify your files or reinstall anything, because nothing outside your own config folder was ever touched.
 
 [size=4][b]No prompts at all?[/b][/size]
 

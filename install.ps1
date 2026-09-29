@@ -25,6 +25,10 @@ foreach ($root in $roots) {
     $file = "$dir\Game.ini"
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
 
+    # the game rewrites its own saved config and will drop our section, so the
+    # file gets locked afterwards. clear the lock first so reinstalls work.
+    if (Test-Path $file) { Set-ItemProperty -Path $file -Name IsReadOnly -Value $false }
+
     $lines = @()
     if (Test-Path $file) {
         $lines = @(Get-Content $file | Where-Object { $_ -notmatch '^\s*DefaultGamepadName\s*=' })
@@ -42,6 +46,7 @@ foreach ($root in $roots) {
     }
 
     Set-Content -Path $file -Value $out -Encoding UTF8
+    Set-ItemProperty -Path $file -Name IsReadOnly -Value $true
     Write-Host "Set $Variant prompts in $file"
 }
 
