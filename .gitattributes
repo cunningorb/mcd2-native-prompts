@@ -11,3 +11,7 @@
 # anything destined for Windows Notepad
 *.txt       text eol=crlf
 *.template  text eol=crlf
+
+# artwork sources and exports
+*.png      binary
+*.afphoto  binary
