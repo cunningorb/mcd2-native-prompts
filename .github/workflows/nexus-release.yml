@@ -95,3 +95,42 @@ jobs:
           category: ${{ matrix.category }}
           archive_existing_version: true
           update_mod_version: true
+
+  # Runs once after every file is up, rather than through the upload action's
+  # own changelog input, because that would post the entries once per variant.
+  # The changelog API only ever appends, so entries already on the page are
+  # skipped and a re-run cannot duplicate them.
+  changelog:
+    needs: [plan, upload]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post changelog entries
+        env:
+          NEXUSMODS_API_KEY: ${{ secrets.NEXUSMODS_API_KEY }}
+        run: |
+          set -euo pipefail
+          file=nexus/variants.json
+          version=$(jq -r '.version' "$file")
+          mod_id=$(jq -r '.mod_id' "$file")
+          url="https://api.nexusmods.com/v1/games/$(jq -r '.game_domain' "$file")/mods/$(jq -r '.page_id' "$file")/changelogs.json"
+
+          if [ "$(jq --arg v "$version" '.changelog[$v] | length' "$file")" = "0" ]; then
+            echo "::warning::No changelog entries for $version in $file, nothing posted."
+            exit 0
+          fi
+
+          existing=$(curl -fsS -H "apikey: $NEXUSMODS_API_KEY" "$url" | jq -c --arg v "$version" '.[$v] // []')
+
+          jq -c --arg v "$version" '.changelog[$v][]' "$file" | while read -r entry; do
+            if jq -e --argjson e "$entry" 'any(.[]; . == $e)' <<<"$existing" >/dev/null; then
+              echo "already posted: $entry"
+              continue
+            fi
+            jq -n --arg v "$version" --argjson e "$entry" '{version: $v, changelog: $e}' |
+              curl -fsS -X POST "https://api.nexusmods.com/v3/mods/$mod_id/changelogs" \
+                   -H "apikey: $NEXUSMODS_API_KEY" -H "Content-Type: application/json" \
+                   -H "User-Agent: mcd2-native-prompts" --data-binary @- >/dev/null
+            echo "posted: $entry"
+          done

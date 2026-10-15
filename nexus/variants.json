@@ -7,11 +7,24 @@
     "fill in mod_id and each file_id below and the release workflow takes over.",
     "",
     "Find the ids on the mod page Files tab with 'Advanced' ticked, or in the",
-    "Manage Files screen."
+    "Manage Files screen.",
+    "",
+    "changelog holds the Nexus changelog entries for each version. On release",
+    "the workflow posts the entries for the current version, one per line on",
+    "the page, and skips any already there, so re-running it is safe. Add the",
+    "new version's entries when you bump version."
   ],
   "version": "2.1.0",
   "game_domain": "minecraftdungeons2",
   "mod_id": "44629005172737",
+  "page_id": 1,
+  "changelog": {
+    "2.1.0": [
+      "The controls screen on the System tab now shows the PlayStation or Switch Pro controller layout, with every label pointing at the right button",
+      "The small controller picture in the menus matches your controller instead of showing an Xbox pad",
+      "Built for Dungeons II 1.1.2.0"
+    ]
+  },
   "variants": [
     {
       "key": "PlayStation",
