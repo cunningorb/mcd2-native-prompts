@@ -68,10 +68,11 @@ never learns what you have plugged in, so an Xbox pad will still show
 PlayStation buttons until you remove the files. That is the tradeoff for a fix
 this small, and it is the same one the old Dungeons mods made.
 
-The controller picture on the System screen still shows an Xbox pad. Separate
-texture, later version.
+The controller pictures follow along too: the little one in the menus, and
+the controls screen, which swaps to the game's own PlayStation or Switch Pro
+layout with its labels in the right places.
 
-Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.1.0
+Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.2.0
 on Unreal Engine 5.6.1.
 
 ## Why the game gets this wrong

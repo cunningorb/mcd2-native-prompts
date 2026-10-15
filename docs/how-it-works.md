@@ -124,10 +124,34 @@ miserable thing to debug. Put something visible in every test build so you can
 tell "the mod did nothing" apart from "the mod never loaded". Disabling the
 startup movies in a config file inside the triplet works nicely for that.
 
-## Still to do
+## The controller pictures
 
-The controller illustration on the System screen is a separate texture,
-`T_Controller_XboxOne`, 212x148. The PlayStation equivalent is 244x164, so it
-needs rescaling rather than a straight swap. A build that included it crashed
-the same way as the empty-canvas texture, and I have not worked out whether
-those two failures share a cause.
+These turned out not to be a texture problem at all. `T_Controller_XboxOne`,
+which the CommonUI Xbox profile points at, is not what the menus draw. The
+pictures are picked by platform in the packed
+`Dungeons/Config/DefaultUIConfig.ini`, under `[/Script/SWUIConfig.SWUIConfig]`:
+
+- `ControllerIcons` maps each platform to a small controller picture, and
+  `SW.Platform.PC.Steam` (and every other PC-ish platform) gets
+  `T_UI_Controller-XSX`
+- `PlatformControllerMap` sends PC to the `SW.UI.WidgetName.InputMap.Xbox` tag
+- a `+Widgets` line maps that tag to `W_InputMapXbox`, the controls screen,
+  which has its own picture and labels laid out around it
+
+The game already ships `W_InputMapPlayStation` and the Switch screens, fully
+built, for the consoles. So the build edits that config in place: the PC
+controller icons point at `T_UI-Controller-PS5` or `T_UI_Controller-Switch`,
+and the Xbox controls-screen tag points at the PlayStation or Switch Pro
+widget. Redirecting the widget instead of the platform map means anything that
+asks for the Xbox screen, whichever way it got there, lands on the right one.
+
+The config goes in the `.pak` of the triplet, replacing the stub retoc writes,
+the same way the skip-splash mod ships `DefaultGame.ini`. The whole file ships
+because a mod container replaces it rather than merging, so a game patch that
+changes anything else in it means a rebuild. The build checks each line it
+touches exists exactly once and stops otherwise.
+
+The script that chooses the widget lives in
+`Dungeons/Script/PrecompiledScript.Cache` (AngelScript, `InputMap.as`), which
+is where the `SW_UI_WidgetName_InputMap_*` names and
+`CommonInputToControllerType` show up if this ever needs digging into again.

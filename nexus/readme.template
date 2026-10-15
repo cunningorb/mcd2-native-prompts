@@ -45,10 +45,10 @@ The prompts change for every controller, not just {{LABEL}} ones. The game
 never learns what you have plugged in, so an Xbox pad will still show these
 prompts until you remove the files.
 
-The controller picture on the System screen still shows an Xbox pad. That is a
-separate texture and it is coming later.
+The controller pictures change too, including the controls screen, which
+uses the game's own {{LABEL}} layout with the labels in the right places.
 
-Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.1.0
+Cosmetic only, so it is safe in multiplayer. Built against Dungeons II 1.1.2.0
 on Unreal Engine 5.6.1. If a game patch changes the icon sheets this will need
 rebuilding, so if prompts go strange after an update, pull the files out.
 {{TESTED}}

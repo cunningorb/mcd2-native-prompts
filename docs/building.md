@@ -36,6 +36,9 @@ key to read anything:
 set MCD2_AES_KEY=0x...
 ```
 
+or put it on one line in `tools/aes_key.txt`, which is gitignored with the
+rest of `tools/`.
+
 The key is not in this repository and will not be. It is not ours to hand out,
 and publishing a shipping game's container key mostly helps people rip assets.
 It is not stored in any file on disk either, so the usual offline dumpers come

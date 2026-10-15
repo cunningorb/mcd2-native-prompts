@@ -29,6 +29,9 @@ TARGET_DIR  = "Dungeons/Content/Spicewood/Core/Platform/Input/CommonUIInput/Game
 TARGET_NAME = "T_UI_Icon_SpriteSheet_Xbox"
 W, CELL, BPP, HDR = 504, 84, 4, 151
 
+INPUT = "/Game/Spicewood/Core/Platform/Input/CommonUIInput"
+INPUTMAP = "/OreUI/UI/Widget/InputMap"
+
 VARIANTS = {
     "PlayStation": dict(
         folder="GamepadPS4", prefix="Sprite_UI_P_PS4-",
@@ -36,14 +39,31 @@ VARIANTS = {
         rename={"A": "Cross", "B": "Circle", "X": "Square", "Y": "Triangle",
                 "LB": "L1", "LT": "L2", "RB": "R1", "RT": "R2",
                 "View": "Share", "Menu": "Options"},
+        icon=INPUT + "/GamepadPS5/T_UI-Controller-PS5.T_UI-Controller-PS5",
+        inputmap=INPUTMAP + "/PlayStationScreens/W_InputMapPlayStation.W_InputMapPlayStation_C",
         label="PlayStation", tested=True),
     "Switch": dict(
         folder="GamepadSwitch", prefix="Sprite_UI_P_NS-",
         sheet=("GamepadSwitch", "T_UI_Icon_SpriteSheet_Switch"),
         rename={"LB": "L", "LT": "ZL", "RB": "R", "RT": "ZR",
                 "View": "Minus", "Menu": "Plus"},
+        icon=INPUT + "/GamepadSwitch/T_UI_Controller-Switch.T_UI_Controller-Switch",
+        inputmap=INPUTMAP + "/SwitchScreens/W_InputMapSwitchProController.W_InputMapSwitchProController_C",
         label="Nintendo Switch", tested=False),
 }
+
+# The controller pictures are not chosen through CommonUI at all. The packed
+# UI config names one per platform, and every PC platform gets the Xbox pad.
+# Rather than repaint those textures, this points the config at the art the
+# game already has for the real controller. A mod container replaces the file
+# instead of merging into it, so the whole thing ships, edited in place.
+UICONFIG = "Dungeons/Config/DefaultUIConfig.ini"
+XSX_ICON = INPUT + "/GamepadXboxSeriesX/T_UI_Controller-XSX.T_UI_Controller-XSX"
+XBOX_INPUTMAP = INPUTMAP + "/XboxScreens/W_InputMapXbox.W_InputMapXbox_C"
+# PC.Steam is Steam and PC.Launcher is presumably the Microsoft Store build.
+# Xbox and Unknown are moved too, since this only ever runs on a PC.
+XSX_PLATFORMS = ["SW.Platform.PC.Launcher", "SW.Platform.Unknown",
+                 "SW.Platform.Xbox", "SW.Platform.PC.Steam"]
 
 STEAM_DEFAULT = r"C:\Program Files (x86)\Steam\steamapps\common\Minecraft Dungeons II"
 
@@ -160,12 +180,66 @@ def build(tag, assets):
     return os.path.join(WORK, "stage", tag)
 
 
-def package(tag, staged, key, version):
+def read_uiconfig(paks, key):
+    """Pull DefaultUIConfig.ini out of the game's legacy pak into work/."""
+    cached = os.path.join(WORK, "DefaultUIConfig.ini")
+    if not os.path.exists(cached):
+        os.makedirs(WORK, exist_ok=True)
+        out = subprocess.run([tool("repak"), "-a", key, "get",
+                              os.path.join(paks, "Dungeons-Windows.pak"), UICONFIG],
+                             check=True, stdout=subprocess.PIPE).stdout
+        if not out:
+            die("read nothing for %s, is the key right?" % UICONFIG)
+        open(cached, "wb").write(out)
+    return open(cached, "rb").read()
+
+
+def edit_uiconfig(raw, tag):
+    """Point the controller picture and the controls screen at the variant's
+    controller. Every line touched is checked against what the game ships, so
+    a patch that reshuffles the config stops the build instead of producing a
+    mod that edits nothing."""
+    v = VARIANTS[tag]
+    text = raw.decode("utf-8-sig")
+    swaps = [('((TagName="%s"), "%s")' % (p, XSX_ICON),
+              '((TagName="%s"), "%s")' % (p, v["icon"])) for p in XSX_PLATFORMS]
+    swaps.append(('(TagName="SW.UI.WidgetName.InputMap.Xbox"),LayerName=(TagName="SW.UI.Slot.System"),'
+                  'StateChildUserWidget="%s"' % XBOX_INPUTMAP,
+                  '(TagName="SW.UI.WidgetName.InputMap.Xbox"),LayerName=(TagName="SW.UI.Slot.System"),'
+                  'StateChildUserWidget="%s"' % v["inputmap"]))
+    for old, new in swaps:
+        n = text.count(old)
+        if n != 1:
+            die("expected %s once in %s, found it %d times; the game's config has"
+                " changed shape" % (old, UICONFIG, n))
+        text = text.replace(old, new)
+    print("  %-12s controller picture -> %s, controls screen -> %s"
+          % (tag, v["icon"].rsplit(".", 1)[-1], v["inputmap"].rsplit("/", 1)[-1].split(".")[0]))
+    bom = b"\xef\xbb\xbf" if raw.startswith(b"\xef\xbb\xbf") else b""
+    return bom + text.encode("utf-8")
+
+
+def package(tag, staged, key, version, uiconfig):
     out = os.path.join(DIST, tag)
     os.makedirs(out, exist_ok=True)
     subprocess.run([tool("retoc"), "-a", key, "to-zen", "--version", "UE5_6",
                     staged, os.path.join(out, "Dungeons-Windows_P.utoc")],
                    check=True, stdout=subprocess.DEVNULL)
+
+    # retoc leaves an empty stub .pak next to the pair. Overwrite it with one
+    # holding the edited config; that is the route mcd2-skip-splash proved.
+    loose = os.path.join(WORK, "loose", tag)
+    shutil.rmtree(loose, ignore_errors=True)
+    cfg = os.path.join(loose, *UICONFIG.split("/"))
+    os.makedirs(os.path.dirname(cfg))
+    open(cfg, "wb").write(edit_uiconfig(uiconfig, tag))
+    pak = os.path.join(out, "Dungeons-Windows_P.pak")
+    subprocess.run([tool("repak"), "pack", "--mount-point", "../../../", loose, pak],
+                   check=True, stdout=subprocess.DEVNULL)
+    listed = subprocess.run([tool("repak"), "list", pak], check=True,
+                            stdout=subprocess.PIPE, text=True).stdout.split()
+    if listed != [UICONFIG]:
+        die("the pak holds %s, expected only %s" % (listed, UICONFIG))
 
     v = VARIANTS[tag]
     tmpl = open(os.path.join(HERE, "nexus", "readme.template"), encoding="utf-8").read()
@@ -189,8 +263,12 @@ def package(tag, staged, key, version):
 
 def main():
     key = os.environ.get("MCD2_AES_KEY")
+    keyfile = os.path.join(TOOLS, "aes_key.txt")
+    if not key and os.path.exists(keyfile):
+        key = open(keyfile).read().strip()
     if not key:
-        die("set MCD2_AES_KEY to the game's container key (see docs/building.md)")
+        die("set MCD2_AES_KEY to the game's container key, or put it in"
+            " tools/aes_key.txt (see docs/building.md)")
 
     meta = json.load(open(os.path.join(HERE, "nexus", "variants.json"), encoding="utf-8"))
     version = meta.get("version", "1.0")
@@ -203,9 +281,10 @@ def main():
     paks = game_paks()
     print("reading assets from %s" % paks)
     assets = extract(paks, key)
+    uiconfig = read_uiconfig(paks, key)
     print("building:")
     for t in wanted:
-        package(t, build(t, assets), key, version)
+        package(t, build(t, assets), key, version, uiconfig)
     print("\ndone, packages are in dist/")
 
 

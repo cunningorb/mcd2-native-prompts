@@ -9,23 +9,23 @@
     "Find the ids on the mod page Files tab with 'Advanced' ticked, or in the",
     "Manage Files screen."
   ],
-  "version": "1.0",
+  "version": "2.1.0",
   "game_domain": "minecraftdungeons2",
-  "mod_id": null,
+  "mod_id": "44629005172737",
   "variants": [
     {
       "key": "PlayStation",
       "archive": "MCD2-PlayStationPrompts.zip",
       "display_name": "PlayStation Button Prompts",
       "category": "main",
-      "file_id": null
+      "file_id": 8050320
     },
     {
       "key": "Switch",
       "archive": "MCD2-SwitchPrompts.zip",
       "display_name": "Nintendo Switch Button Prompts",
       "category": "optional",
-      "file_id": null
+      "file_id": 8050329
     }
   ]
 }
