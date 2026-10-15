@@ -76,9 +76,9 @@ so move the `_P` files out and clear `work/` before building.
 5. The workflow in `.github/workflows/nexus-release.yml` forwards them to
    Nexus, then posts the changelog entries to the mod page
 
+That last step only runs for variants with a `file_id` filled in. See the
+comments in `nexus/variants.json`.
+
 Nexus changelogs can only be appended to through the API, never edited, so
 read the entries over before releasing. Fix a mistake by hand on the mod page.
 The workflow skips entries that are already there, so re-running it is safe.
-
-That last step only runs for variants with a `file_id` filled in. See the
-comments in `nexus/variants.json`.
